@@ -1,4 +1,3 @@
-
 function StandartDT({
     idtabla = '',
     lenguage = {
@@ -39,6 +38,7 @@ function StandartDT({
     currencyColumns = [],
     maxShow = 500,
     scrollX = false,
+    optionsColumn = false,
 }) {
     this.idtabla = idtabla;
     this.lenguage = lenguage;
@@ -57,38 +57,61 @@ function StandartDT({
     this.currencyColumns = currencyColumns;
     this.maxShow = maxShow;
     this.scrollX = scrollX;
+    this.optionsColumn = optionsColumn;
+
+    this.colNames = [];
+
+    this.ColumnIndexToHide = [];
+    this.ColumnIndexToCurrency = [];
+
+    this.createOptions = function () {
+        this.colNames = Object.keys(this.data[0])
+
+        return new Promise((resolve, reject) => {
+            if (this.optionsColumn) {
+                this.colNames.push("Opciones")
+
+                console.log(this.colNames)
+            }
+            resolve();
+        }).then(res => {
+            this.data.forEach(function (element) {
+                element.Opciones = [optionsColumn][0];
+            })
+        });
+    }
 
     this.createColumsOfArray = function () {
-        let colNames = Object.keys(this.data[0]);
-        let ColumnIndexToHide = [];
-        let ColumnIndexToCurrency = [];
+       
 
-        console.log('hidecolumns');
         return new Promise((resolve, reject) => {
-            for (columna in colNames) {
-                this.columns.push({ title: colNames[columna] })
 
-                if (this.hideColumns.indexOf(colNames[columna]) >= 0)
-                    ColumnIndexToHide.push(colNames.indexOf(colNames[columna]))
+  
+            
+            for (columna in this.colNames) {
+                this.columns.push({ data: this.colNames[columna], title: this.colNames[columna] })
+
+                if (this.hideColumns.indexOf(this.colNames[columna]) >= 0)
+                    this.ColumnIndexToHide.push(this.colNames.indexOf(this.colNames[columna]))
 
 
-                if (this.currencyColumns.indexOf(colNames[columna]) >= 0)
-                    ColumnIndexToCurrency.push(colNames.indexOf(colNames[columna]))
+                if (this.currencyColumns.indexOf(this.colNames[columna]) >= 0)
+                    this.ColumnIndexToCurrency.push(this.colNames.indexOf(this.colNames[columna]))
 
             }
-           
+
 
             resolve(true);
             reject(false);
         }).then(res => {
 
-            this.columnDefs.push({ targets: ColumnIndexToHide, visible: false })
+            this.columnDefs.push({ targets: this.ColumnIndexToHide, visible: false })
             this.columnDefs.push({
-                targets: ColumnIndexToCurrency,
+                targets: this.ColumnIndexToCurrency,
                 render: function (data, type, row, meta) {
                     return Intl.NumberFormat("en-US").format(data)
                 }
-            })  
+            })
 
         })
 
@@ -125,14 +148,8 @@ function StandartDT({
         return new Promise((resolve, reject) => {
 
             if (this.data.length > 0)
-                for (fila in this.data)
-                    if (fila < this.maxShow)
-                        this.table.row.add(Object.values(this.data[fila])).draw();
-                    else
-                        this.table.row.add(Object.values(this.data[fila]));
-            else
-                for (fila in this.data)
-                    this.table.row.add(Object.values(this.data[fila])).draw();
+                this.table.rows.add(this.data).draw();
+
 
 
 
@@ -143,11 +160,14 @@ function StandartDT({
 
     this.start = function ({ finalFunc }) {
         if (this.data.length > 0)
-            this.createColumsOfArray().then(res => {
-                this.createTable().then(res => {
-                    this.fillTable().then(res => {
-                        console.log('termino');
-                        finalFunc();
+            this.createOptions().then(res => {
+                this.createColumsOfArray().then(res => {
+                    this.createTable().then(res => {
+                        this.fillTable().then(res => {
+                            console.log('termino');
+                            this.table.columns.adjust().draw();
+                            finalFunc();
+                        });
                     });
                 });
             });
@@ -156,6 +176,7 @@ function StandartDT({
     }
 
     this.clear = function () {
-        this.table.clear().draw();
+        if (this.table != null)
+            this.table.clear().draw();
     }
 };
