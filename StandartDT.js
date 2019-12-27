@@ -60,7 +60,6 @@ function StandartDT({
     this.optionsColumn = optionsColumn;
 
     this.colNames = [];
-
     this.ColumnIndexToHide = [];
     this.ColumnIndexToCurrency = [];
 
@@ -88,7 +87,8 @@ function StandartDT({
 
   
             
-            for (columna in this.colNames) {
+            
+            for (let columna in this.colNames) {
                 this.columns.push({ data: this.colNames[columna], title: this.colNames[columna] })
 
                 if (this.hideColumns.indexOf(this.colNames[columna]) >= 0)
@@ -108,6 +108,7 @@ function StandartDT({
             this.columnDefs.push({ targets: this.ColumnIndexToHide, visible: false })
             this.columnDefs.push({
                 targets: this.ColumnIndexToCurrency,
+                className: "text-right",
                 render: function (data, type, row, meta) {
                     return Intl.NumberFormat("en-US").format(data)
                 }
